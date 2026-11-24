@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2026 Cetmix Nordic Ltd
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+    <template id="specification_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="spec">
+                <t t-call="web.external_layout">
+                    <t t-set="currency" t-value="spec.currency_id" />
+                    <div class="page">
+                        <h2 t-field="spec.name" />
+                        <div class="row mb-3">
+                            <div class="col-4">
+                                <strong>Date: </strong>
+                                <span t-field="spec.date" />
+                            </div>
+                            <div class="col-4">
+                                <strong>Prepared by: </strong>
+                                <span t-field="spec.prepared_by_id" />
+                                <span
+                                    t-field="spec.prepared_date"
+                                    t-options="{'widget': 'date'}"
+                                />
+                            </div>
+                            <div class="col-4">
+                                <strong>Checked by: </strong>
+                                <span t-field="spec.checked_by_id" />
+                                <span
+                                    t-field="spec.checked_date"
+                                    t-options="{'widget': 'date'}"
+                                />
+                            </div>
+                        </div>
+                        <table class="table table-sm o_main_table">
+                            <thead>
+                                <tr>
+                                    <th>Account / item</th>
+                                    <th class="text-end">Amount</th>
+                                    <th class="text-end">Unexplained</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="spec._get_report_groups()" t-as="group">
+                                    <tr class="table-active">
+                                        <td colspan="3">
+                                            <strong t-out="group[0]" />
+                                        </td>
+                                    </tr>
+                                    <t t-foreach="group[1]" t-as="line">
+                                        <tr>
+                                            <td>
+                                                <strong
+                                                    t-out="line.account_id.display_name"
+                                                />
+                                            </td>
+                                            <td class="text-end">
+                                                <strong
+                                                    t-out="line.balance"
+                                                    t-options="{'widget': 'monetary', 'display_currency': currency}"
+                                                />
+                                            </td>
+                                            <td class="text-end">
+                                                <span
+                                                    t-if="not currency.is_zero(line.difference)"
+                                                    t-out="line.difference"
+                                                    t-options="{'widget': 'monetary', 'display_currency': currency}"
+                                                />
+                                            </td>
+                                        </tr>
+                                        <tr t-foreach="line.item_ids" t-as="item">
+                                            <td class="ps-4">
+                                                <span t-out="item.name" />
+                                                <span t-if="item.reference"> (<t
+                                                    t-out="item.reference"
+                                                />)</span>
+                                                <span t-if="item.date">
+                                                    <t t-out="item.date" />
+                                                </span>
+                                            </td>
+                                            <td class="text-end">
+                                                <span
+                                                    t-out="item.amount"
+                                                    t-options="{'widget': 'monetary', 'display_currency': currency}"
+                                                />
+                                            </td>
+                                            <td />
+                                        </tr>
+                                        <tr t-if="line.note">
+                                            <td colspan="3" class="ps-4 fst-italic">
+                                                <span t-out="line.note" />
+                                            </td>
+                                        </tr>
+                                        <tr t-if="line.attachment_ids">
+                                            <td colspan="3" class="ps-4 text-muted">
+                                                Attachments:
+                                                <t
+                                                t-out="', '.join(line.attachment_ids.mapped('name'))"
+                                            />
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </t>
+                            </tbody>
+                        </table>
+                        <table class="table table-sm w-50 ms-auto">
+                            <tr>
+                                <td>Total assets</td>
+                                <td class="text-end">
+                                    <span t-field="spec.total_assets" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Total liabilities</td>
+                                <td class="text-end">
+                                    <span t-field="spec.total_liabilities" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Total equity</td>
+                                <td class="text-end">
+                                    <span t-field="spec.total_equity" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Unallocated earnings</td>
+                                <td class="text-end">
+                                    <span t-field="spec.unallocated_earnings" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Accounts not fully explained</td>
+                                <td class="text-end">
+                                    <span t-field="spec.unexplained_count" />
+                                </td>
+                            </tr>
+                        </table>
+                        <div t-if="spec.note" t-field="spec.note" />
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
