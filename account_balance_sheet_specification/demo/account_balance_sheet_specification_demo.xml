@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2026 Cetmix Nordic Ltd
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+    <record
+        id="account_balance_sheet_specification_demo"
+        model="account.balance.sheet.specification"
+    >
+        <field name="name">Balance sheet specification (demo)</field>
+        <field name="company_id" ref="base.main_company" />
+        <field name="date" eval="DateTime.today().strftime('%Y-12-31')" />
+    </record>
+    <function model="account.balance.sheet.specification" name="action_compute">
+        <value eval="[ref('account_balance_sheet_specification_demo')]" />
+    </function>
+</odoo>

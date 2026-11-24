@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2026 Cetmix Nordic Ltd
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+    <record id="account_balance_sheet_specification_view_list" model="ir.ui.view">
+        <field name="model">account.balance.sheet.specification</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="date" />
+                <field name="name" />
+                <field name="company_id" groups="base.group_multi_company" />
+                <field name="unexplained_count" />
+                <field name="prepared_by_id" optional="show" />
+                <field name="checked_by_id" optional="show" />
+                <field
+                    name="state"
+                    widget="badge"
+                    decoration-info="state == 'draft'"
+                    decoration-warning="state == 'prepared'"
+                    decoration-success="state == 'checked'"
+                />
+            </list>
+        </field>
+    </record>
+    <record id="account_balance_sheet_specification_view_form" model="ir.ui.view">
+        <field name="model">account.balance.sheet.specification</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button
+                        name="action_compute"
+                        type="object"
+                        string="Compute"
+                        class="btn-primary"
+                        invisible="state != 'draft'"
+                    />
+                    <button
+                        name="action_prepare"
+                        type="object"
+                        string="Mark as Prepared"
+                        invisible="state != 'draft' or not line_ids"
+                    />
+                    <button
+                        name="action_check"
+                        type="object"
+                        string="Mark as Checked"
+                        class="btn-primary"
+                        invisible="state != 'prepared'"
+                    />
+                    <button
+                        name="action_reset_to_draft"
+                        type="object"
+                        string="Reset to Draft"
+                        invisible="state == 'draft'"
+                        confirm="The sign-offs are removed. Continue?"
+                    />
+                    <button
+                        name="action_print_pdf"
+                        type="object"
+                        string="PDF"
+                        icon="fa-file-pdf-o"
+                    />
+                    <button
+                        name="action_print_xlsx"
+                        type="object"
+                        string="Excel"
+                        icon="fa-file-excel-o"
+                    />
+                    <field name="state" widget="statusbar" />
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field
+                                name="name"
+                                placeholder="e.g. Balance sheet specification 2026"
+                                readonly="state != 'draft'"
+                            />
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="date" readonly="state != 'draft'" />
+                            <field
+                                name="company_id"
+                                groups="base.group_multi_company"
+                                readonly="line_ids"
+                            />
+                            <field name="previous_id" />
+                            <field name="computed_date" />
+                        </group>
+                        <group>
+                            <field name="prepared_by_id" />
+                            <field name="prepared_date" />
+                            <field name="checked_by_id" />
+                            <field name="checked_date" />
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Totals">
+                            <field name="total_assets" />
+                            <field name="total_liabilities" />
+                            <field name="total_equity" />
+                            <field name="unallocated_earnings" />
+                            <field
+                                name="balance_difference"
+                                decoration-danger="balance_difference != 0"
+                            />
+                        </group>
+                        <group string="Status">
+                            <field
+                                name="unexplained_count"
+                                decoration-danger="unexplained_count"
+                                decoration-success="not unexplained_count"
+                            />
+                        </group>
+                    </group>
+                    <field name="currency_id" invisible="1" />
+                    <notebook>
+                        <page string="Accounts" name="accounts">
+                            <field name="line_ids" readonly="1">
+                                <list
+                                    decoration-danger="difference != 0"
+                                    decoration-muted="balance == 0"
+                                >
+                                    <field name="group_name" />
+                                    <field name="account_id" />
+                                    <field name="method" optional="show" />
+                                    <field name="balance" sum="Total" />
+                                    <field name="auto_amount" optional="hide" />
+                                    <field name="manual_amount" optional="hide" />
+                                    <field name="difference" sum="Total" />
+                                    <field name="currency_id" column_invisible="1" />
+                                    <button
+                                        name="action_open"
+                                        type="object"
+                                        icon="fa-pencil-square-o"
+                                        title="Itemize"
+                                    />
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="note" readonly="state != 'draft'" />
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter />
+            </form>
+        </field>
+    </record>
+    <record id="account_balance_sheet_specification_view_search" model="ir.ui.view">
+        <field name="model">account.balance.sheet.specification</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" />
+                <field name="date" />
+                <filter
+                    string="Draft"
+                    name="draft"
+                    domain="[('state', '=', 'draft')]"
+                />
+                <filter
+                    string="Checked"
+                    name="checked"
+                    domain="[('state', '=', 'checked')]"
+                />
+            </search>
+        </field>
+    </record>
+    <record
+        id="account_balance_sheet_specification_action"
+        model="ir.actions.act_window"
+    >
+        <field name="name">Balance Sheet Specifications</field>
+        <field name="res_model">account.balance.sheet.specification</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Specify the balance sheet of a closing date
+            </p>
+            <p>
+                Odoo lists every balance sheet account with its balance and
+                itemizes what it can: open items per partner and bank
+                statement balances. Explain the rest by hand, attach the
+                documents and sign the specification off.
+            </p>
+        </field>
+    </record>
+    <menuitem
+        id="account_balance_sheet_specification_menu"
+        parent="account.menu_finance_reports"
+        action="account_balance_sheet_specification_action"
+        sequence="60"
+        groups="account.group_account_readonly"
+    />
+</odoo>
